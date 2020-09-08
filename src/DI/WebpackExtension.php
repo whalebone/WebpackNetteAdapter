@@ -18,6 +18,7 @@ use Oops\WebpackNetteAdapter\BasePath\NetteHttpBasePathProvider;
 use Oops\WebpackNetteAdapter\BuildDirectoryProvider;
 use Oops\WebpackNetteAdapter\Debugging\WebpackPanel;
 use Oops\WebpackNetteAdapter\DevServer;
+use Oops\WebpackNetteAdapter\Manifest\IdentityMapper;
 use Oops\WebpackNetteAdapter\Manifest\ManifestLoader;
 use Oops\WebpackNetteAdapter\PublicPathProvider;
 use Tracy;
@@ -80,12 +81,6 @@ class WebpackExtension extends CompilerExtension
 
 		if ($config['devServer']['enabled'] && empty($config['devServer']['url'])) {
 			throw new ConfigurationException('You need to specify the dev server URL.');
-		}
-
-		if ($config['manifest']['mapper'] !== NULL) {
-			if (!class_exists($config['manifest']['mapper'])) {
-				throw new ConfigurationException("Non-existent classname '{$config['manifest']['mapper']}'provided for ManifestMapper.");
-			}
 		}
 
 		$basePathProvider = $builder->addDefinition($this->prefix('pathProvider.basePathProvider'))
@@ -190,7 +185,9 @@ class WebpackExtension extends CompilerExtension
 					new Client()
 				);
 
-				$mapperInstance = ($config['manifest']['mapper'] === NULL) ? NULL : new $config['manifest']['mapper']();
+				$mapperInstance = ($config['manifest']['mapper'] === NULL)
+					? NULL
+					: new $config['manifest']['mapper']();
 
 				$directoryProviderInstance = new BuildDirectoryProvider($config['build']['directory'], $devServerInstance);
 				$loaderInstance = new ManifestLoader($directoryProviderInstance, $mapperInstance);
